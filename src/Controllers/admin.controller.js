@@ -25,7 +25,7 @@ const registerAdmin = async (req, res) => {
 
     res.status(201).json({
       success: true,
-      token: generateToken(admin._id),
+      data: { token: generateToken(admin._id) },
       admin: { id: admin._id, username: admin.username, email: admin.email },
     });
   } catch (err) {
@@ -55,7 +55,7 @@ const loginAdmin = async (req, res) => {
 
     res.json({
       success: true,
-      token: generateToken(admin._id),
+      data: { token: generateToken(admin._id) },
       admin: { id: admin._id, username: admin.username, email: admin.email },
     });
   } catch (err) {

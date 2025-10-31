@@ -115,5 +115,4 @@ const me = async (req, res) => {
   }
 };
 
-// ✅ Corrected export
 module.exports = { register, login, me };

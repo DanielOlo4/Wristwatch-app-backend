@@ -1,12 +1,13 @@
 const Watch = require("../models/Watch");
 
-// Helper function to get image URL
+// FIXED: Helper function to get image URL - use correct domain
 const getImageUrl = (filename) => {
   if (!filename) return null;
-  return `http://localhost:5000/uploads/${filename}`;
+  // Change from Netlify domain to your actual backend domain
+  return `https://wristwatch-app-backend.onrender.com/uploads/${filename}`;
 };
 
-// CREATE watch
+// CREATE watch - NO CHANGES NEEDED (it's already correct)
 const create = async (req, res) => {
   try {
     // Check if file was uploaded
@@ -33,7 +34,7 @@ const create = async (req, res) => {
       type, 
       description,
       price: Number(price),
-      image: req.file.filename,
+      image: req.file.filename, // This stores just the filename
     });
 
     await newWatch.save();
@@ -42,7 +43,7 @@ const create = async (req, res) => {
       success: true, 
       data: {
         ...newWatch.toObject(),
-        imageUrl: getImageUrl(req.file.filename)
+        imageUrl: getImageUrl(req.file.filename) // This adds the full URL
       },
       message: "Watch created successfully"
     });
@@ -56,7 +57,7 @@ const create = async (req, res) => {
   }
 };
 
-// UPDATE watch
+// UPDATE watch - NO CHANGES NEEDED (it's already correct)
 const update = async (req, res) => {
   try {
     const updateData = { ...req.body };
@@ -83,7 +84,7 @@ const update = async (req, res) => {
       success: true, 
       data: {
         ...watch.toObject(),
-        imageUrl: getImageUrl(watch.image)
+        imageUrl: getImageUrl(watch.image) // This adds the full URL
       },
       message: "Watch updated successfully" 
     });
@@ -97,7 +98,7 @@ const update = async (req, res) => {
   }
 };
 
-// LIST all watches (PUBLIC)
+// LIST all watches (PUBLIC) - NO CHANGES NEEDED (it's already correct)
 const list = async (req, res) => {
   try {
     const { search } = req.query;
@@ -118,7 +119,7 @@ const list = async (req, res) => {
     // Add image URLs to all watches
     const watchesWithUrls = watches.map(watch => ({
       ...watch.toObject(),
-      imageUrl: getImageUrl(watch.image)
+      imageUrl: getImageUrl(watch.image) // This adds the full URL
     }));
 
     res.json({ 
@@ -135,7 +136,7 @@ const list = async (req, res) => {
   }
 };
 
-// GET watch by ID
+// GET watch by ID - NO CHANGES NEEDED (it's already correct)
 const getById = async (req, res) => {
   try {
     const watch = await Watch.findById(req.params.id);
@@ -151,7 +152,7 @@ const getById = async (req, res) => {
       success: true, 
       data: {
         ...watch.toObject(),
-        imageUrl: getImageUrl(watch.image)
+        imageUrl: getImageUrl(watch.image) // This adds the full URL
       }
     });
     
@@ -164,7 +165,7 @@ const getById = async (req, res) => {
   }
 };
 
-// DELETE watch
+// DELETE watch - NO CHANGES NEEDED
 const remove = async (req, res) => {
   try {
     const watch = await Watch.findByIdAndDelete(req.params.id);
@@ -189,8 +190,6 @@ const remove = async (req, res) => {
     });
   }
 };
-
-// Remove getAllWatches function since we have list function
 
 module.exports = { 
   create, 

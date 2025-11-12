@@ -321,7 +321,7 @@ const addItemToCart = async (req, res) => {
 const initializePayment = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { deliveryAddress, deliveryPhone } = req.body;
+    const { deliveryAddress, deliveryPhone, orderId } = req.body;
     
     // ✅ ENHANCED DEBUGGING
     console.log('=== PAYMENT DEBUGGING START ===');
@@ -329,6 +329,7 @@ const initializePayment = async (req, res) => {
     console.log('👤 User ID from token:', userId);
     console.log('📦 Delivery Address:', deliveryAddress);
     console.log('📱 Delivery Phone:', deliveryPhone);
+    console.log('🆔 Order ID:', orderId);
     console.log('🔑 User from token object:', req.user);
     console.log('=== PAYMENT DEBUGGING END ===');
 
@@ -412,21 +413,33 @@ const initializePayment = async (req, res) => {
       }
     );
 
-    const reference = `watch_${userId}_${Date.now()}`;
+    // ✅ ENHANCED REFERENCE GENERATION
+    const reference = orderId 
+      ? `order_${orderId}_${Date.now()}`
+      : `watch_${userId}_${Date.now()}`;
 
-    // Paystack payload
+    // ✅ ENHANCED CALLBACK URL
+    const baseUrl = process.env.BASE_URL || 'https://wristwatch-app-backend.onrender.com';
+    const callbackUrl = orderId 
+      ? `${process.env.FRONTEND_URL || 'https://yourdomain.com'}/payment-callback`
+      : `${baseUrl}/api/cart/verify-payment/${reference}`;
+
+    console.log('🔗 Callback URL:', callbackUrl);
+
+    // ✅ ENHANCED PAYSTACK PAYLOAD
     const paymentData = {
       email: email,
       amount: Math.round(finalTotal * 100), // Convert to kobo
       currency: 'NGN',
       reference: reference,
-      callback_url: `${process.env.BASE_URL || 'https://wristwatch-app-backend.onrender.com'}/api/cart/verify-payment/${reference}`,
+      callback_url: callbackUrl,
       metadata: {
         userId: userId.toString(),
         cartItems: cartItems.length,
         deliveryAddress: deliveryAddress,
         deliveryPhone: deliveryPhone,
-        totalAmount: finalTotal
+        totalAmount: finalTotal,
+        ...(orderId && { orderId: orderId }) // ✅ Conditionally add orderId
       }
     };
 
@@ -448,6 +461,14 @@ const initializePayment = async (req, res) => {
           }
         );
 
+        // ✅ If orderId exists, update order with payment reference
+        if (orderId) {
+          await Order.findByIdAndUpdate(orderId, {
+            paymentReference: reference,
+            paystackAccessCode: paystackResponse.data.access_code
+          });
+        }
+
         return res.status(201).json({
           success: true,
           message: "Payment initialization successful",
@@ -458,7 +479,8 @@ const initializePayment = async (req, res) => {
             amount: finalTotal,
             shipping: shippingFee,
             tax: tax,
-            subtotal: totalPrice
+            subtotal: totalPrice,
+            orderId: orderId || null // ✅ Include orderId in response
           },
         });
       } else {
